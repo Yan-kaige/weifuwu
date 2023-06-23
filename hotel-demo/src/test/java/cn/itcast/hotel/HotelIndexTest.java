@@ -11,6 +11,8 @@ import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
@@ -18,12 +20,20 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.indices.CreateIndexRequest;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
+import org.elasticsearch.search.sort.SortOrder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import javax.naming.directory.SearchResult;
 import java.io.IOException;
 
 @SpringBootTest
@@ -196,5 +206,127 @@ public class HotelIndexTest {
         }
 
         client.bulk(bulkRequest,RequestOptions.DEFAULT);
+    }
+
+
+    @Test
+    void testMatchALl() throws IOException {
+
+        SearchRequest request = new SearchRequest("hotel");
+        request.source().query(QueryBuilders.matchAllQuery());
+        SearchResponse search = client.search(request, RequestOptions.DEFAULT);
+
+        SearchHit[] hits = search.getHits().getHits();
+
+        for (SearchHit hit : hits) {
+            String sourceAsString = hit.getSourceAsString();
+            HotelDoc hotelDoc = JSON.parseObject(sourceAsString, HotelDoc.class);
+            System.out.println(hotelDoc);
+        }
+
+
+    }
+
+
+    @Test
+    void testMatch() throws IOException {
+        SearchRequest request = new SearchRequest("hotel");
+        request.source().query(QueryBuilders.matchQuery("all","如家"));
+        SearchResponse search = client.search(request, RequestOptions.DEFAULT);
+
+        SearchHit[] hits = search.getHits().getHits();
+
+        for (SearchHit hit : hits) {
+            String sourceAsString = hit.getSourceAsString();
+            HotelDoc hotelDoc = JSON.parseObject(sourceAsString, HotelDoc.class);
+            System.out.println(hotelDoc);
+        }
+
+    }
+
+
+    @Test
+    void testMatch2() throws IOException {
+        SearchRequest request = new SearchRequest("hotel");
+        request.source().query(QueryBuilders.multiMatchQuery("如家","name","brand"));
+        SearchResponse search = client.search(request, RequestOptions.DEFAULT);
+
+        SearchHit[] hits = search.getHits().getHits();
+
+        for (SearchHit hit : hits) {
+            String sourceAsString = hit.getSourceAsString();
+            HotelDoc hotelDoc = JSON.parseObject(sourceAsString, HotelDoc.class);
+            System.out.println(hotelDoc);
+        }
+
+    }
+
+
+    @Test
+    void testMatch3() throws IOException {
+        SearchRequest request = new SearchRequest("hotel");
+        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+        boolQuery.must(QueryBuilders.termQuery("city","上海"));
+        boolQuery.filter(QueryBuilders.rangeQuery("price").lte(1000));
+        request.source().query(boolQuery);
+        SearchResponse search = client.search(request, RequestOptions.DEFAULT);
+
+        SearchHit[] hits = search.getHits().getHits();
+
+        for (SearchHit hit : hits) {
+            String sourceAsString = hit.getSourceAsString();
+            HotelDoc hotelDoc = JSON.parseObject(sourceAsString, HotelDoc.class);
+            System.out.println(hotelDoc);
+        }
+
+    }
+
+
+    @Test
+    void testSOrt() throws IOException {
+
+        SearchRequest request = new SearchRequest("hotel");
+        request.source().query(QueryBuilders.matchAllQuery());
+        request.source().sort("price", SortOrder.ASC);
+        request.source().from(0).size(5);
+        SearchResponse search = client.search(request, RequestOptions.DEFAULT);
+
+        SearchHit[] hits = search.getHits().getHits();
+
+        for (SearchHit hit : hits) {
+            String sourceAsString = hit.getSourceAsString();
+            HotelDoc hotelDoc = JSON.parseObject(sourceAsString, HotelDoc.class);
+            System.out.println(hotelDoc);
+        }
+
+
+    }
+
+
+    @Test
+    void testHighlight() throws IOException {
+        // 1.准备Request
+        SearchRequest request = new SearchRequest("hotel");
+        // 2.准备DSL
+        // 2.1.query
+        request.source().query(QueryBuilders.matchQuery("all", "如家"));
+        // 2.2.高亮
+        request.source().highlighter(new HighlightBuilder().field("name").requireFieldMatch(false));
+        // 3.发送请求
+        SearchResponse search = client.search(request, RequestOptions.DEFAULT);
+        // 4.解析响应
+        SearchHit[] hits = search.getHits().getHits();
+
+        for (SearchHit hit : hits) {
+            String sourceAsString = hit.getSourceAsString();
+            HotelDoc hotelDoc = JSON.parseObject(sourceAsString, HotelDoc.class);
+
+            HighlightField name = hit.getHighlightFields().get("name");
+            if  (name!=null){
+              hotelDoc.setName(name.fragments()[0].string());
+            }
+            System.out.println(hotelDoc);
+        }
+
     }
 }
