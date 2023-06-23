@@ -24,6 +24,11 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregator;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
@@ -35,6 +40,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.naming.directory.SearchResult;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @SpringBootTest
 public class HotelIndexTest {
@@ -327,6 +335,15 @@ public class HotelIndexTest {
             }
             System.out.println(hotelDoc);
         }
+
+    }
+
+
+
+    @Test
+    void testAgg() throws IOException {
+//        System.out.println(hotelService.getFilters());
+
 
     }
 }
