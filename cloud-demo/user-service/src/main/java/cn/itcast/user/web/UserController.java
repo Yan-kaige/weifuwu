@@ -28,7 +28,12 @@ public class UserController {
      * @return 用户
      */
     @GetMapping("/{id}")
-    public User queryById(@PathVariable("id") Long id) {
+    public User queryById(@PathVariable("id") Long id) throws InterruptedException {
+        if (id==1){
+            Thread.sleep(50);
+        } else if (id == 2) {
+            throw  new RuntimeException("故意");
+        }
         return userService.queryById(id);
     }
 

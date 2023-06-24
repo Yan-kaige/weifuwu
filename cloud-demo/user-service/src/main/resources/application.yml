@@ -2,7 +2,7 @@ server:
   port: 8081
 spring:
   datasource:
-    url: jdbc:mysql://172.21.47.218:3306/cloud_user?allowPublicKeyRetrieval=true&useSSL=false
+    url: jdbc:mysql://39.101.64.92:3306/cloud_user?allowPublicKeyRetrieval=true&useSSL=false
     username: root
     password: 123456
     driver-class-name: com.mysql.jdbc.Driver
