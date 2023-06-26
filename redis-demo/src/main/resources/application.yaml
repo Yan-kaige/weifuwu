@@ -1,0 +1,18 @@
+logging:
+  level:
+    io.lettuce.core: debug
+  pattern:
+    dateformat: MM-dd HH:mm:ss:SSS
+
+spring:
+  redis:
+    cluster:
+      nodes:
+        - 172.18.23.243:7001
+        - 172.18.23.243:7002
+        - 172.18.23.243:7003
+        - 172.18.23.243:8001
+        - 172.18.23.243:8002
+        - 172.18.23.243:8003
+server:
+  port: 8099
